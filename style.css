@@ -141,10 +141,26 @@ p {
     margin-bottom: 10px;
 }
 
+.img-info {
+    width: 100%;
+    /* Faz a imagem ocupar a largura total do quadro */
+    max-width: 100%;
+    /* Garante que não ultrapasse o limite */
+    height: auto;
+    /* Mantém a proporção da foto */
+    border-radius: 12px;
+    /* Deixa as pontas arredondadas para combinar com o quadro */
+    margin-bottom: 15px;
+    /* Cria um espaço entre a foto e o texto abaixo */
+    display: block;
+}
+
+/* Ajuste opcional na info-lista para centralizar o conteúdo se preferir */
 .info-lista {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    /* Centraliza a imagem e os textos */
     gap: 8px;
 }
 
