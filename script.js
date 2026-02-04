@@ -1,7 +1,7 @@
 /* =========================
    CONTADOR
 ========================= */
-const evento = new Date("2026-02-14T16:00:00-03:00").getTime();
+const evento = new Date("2026-02-16T16:00:00-03:00").getTime();
 
 setInterval(() => {
   const agora = new Date().getTime();
