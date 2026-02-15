@@ -2,8 +2,8 @@
    CONTADOR
 ========================= */
 
-//const evento = new Date("2026-02-16T16:00:00-03:00").getTime();
-const evento = new Date(Date.now() + 5000).getTime(); // teste 5 segundos
+const evento = new Date("2026-02-16T16:00:00-03:00").getTime();
+//const evento = new Date(Date.now() + 5000).getTime(); // teste 5 segundos
 
 let fogosIniciados = false;
 
