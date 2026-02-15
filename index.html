@@ -5,11 +5,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>La Mafia 2026 | Prévia de Carnaval</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+
+    <!-- CANVAS FOGOS -->
+    <canvas id="fogos"></canvas>
+
+    <!-- OVERLAY ESCURO -->
+    <div id="overlay-festa"></div>
+
+    <!-- BOTÃO FECHAR -->
+    <button id="btn-fechar-festa">Fechar ✖</button>
+
+    <!-- MENSAGEM -->
+    <div id="mensagem-evento">
+        🎉 É HOJE 🍻🔥 🎉
+    </div>
+
+    <!-- SOM -->
+    <audio id="som-fogos" preload="auto">
+        <source src="assets/fogos.mp3" type="audio/mpeg">
+    </audio>
+
+
+
     <div class="overlay">
         <div class="container">
             <img src="assets/logo.png" alt="La Mafia 2026" class="fundo">
@@ -72,6 +95,7 @@
                 <img src="assets/icons8-whatsapp-48.png" alt="WhatsApp" class="icon-whats">
                 Falar com Junior
             </a>
+
             <a href="https://wa.me/5598985162463?text=Quero%20comprar%20o%20abadá%20da%20La%20Mafia%202026"
                 target="_blank" class="btn btn-whats">
                 <img src="assets/icons8-whatsapp-48.png" alt="WhatsApp" class="icon-whats">
@@ -81,83 +105,104 @@
 
         <section class="galeria-horizontal">
             <h2 class="titulo-galeria">Momentos Lá Mafia 🔥</h2>
+
             <div class="galeria-scroll">
+
                 <div class="foto-card">
                     <span class="ano-foto">2025</span>
-                    <img src="assets/LaMafia2025.jpeg" alt="La Mafia 2025">
+                    <img src="assets/LaMafia2025.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2025</span>
-                    <img src="assets/LaMafia2025-2.jpeg" alt="La Mafia 2025">
+                    <img src="assets/LaMafia2025-2.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2025</span>
-                    <img src="assets/LaMafia2025-1.jpeg" alt="La Mafia 2025">
+                    <img src="assets/LaMafia2025-1.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2024</span>
-                    <img src="assets/LaMafia2024.jpeg" alt="La Mafia 2024">
+                    <img src="assets/LaMafia2024.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2024</span>
-                    <img src="assets/LaMafia2024-1.jpeg" alt="La Mafia 2024">
+                    <img src="assets/LaMafia2024-1.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2024</span>
-                    <img src="assets/LaMafia2024-2.jpeg" alt="La Mafia 2024">
+                    <img src="assets/LaMafia2024-2.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2024</span>
-                    <img src="assets/LaMAfia2024-3.jpeg" alt="La Mafia 2024">
+                    <img src="assets/LaMAfia2024-3.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2023</span>
-                    <img src="assets/LaMafia2023.jpeg" alt="La Mafia 2023">
+                    <img src="assets/LaMafia2023.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2023</span>
-                    <img src="assets/LaMafia2023-2.jpeg" alt="La Mafia 2023">
+                    <img src="assets/LaMafia2023-2.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2022</span>
-                    <img src="assets/LaMafia2022.jpg" alt="La Mafia 2022">
+                    <img src="assets/LaMafia2022.jpg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2022</span>
-                    <img src="assets/LaMafia2022-1.jpeg" alt="La Mafia 2022">
+                    <img src="assets/LaMafia2022-1.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2022</span>
-                    <img src="assets/LaMafia2022-2.jpeg" alt="La Mafia 2022">
+                    <img src="assets/LaMafia2022-2.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2021</span>
-                    <img src="assets/LaMafia2021.jpeg" alt="La Mafia 2021">
+                    <img src="assets/LaMafia2021.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2021</span>
-                    <img src="assets/LaMafia2021-1.jpeg" alt="La Mafia 2021">
+                    <img src="assets/LaMafia2021-1.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2021</span>
-                    <img src="assets/LaMafia2021-2.jpeg" alt="La Mafia 2021">
+                    <img src="assets/LaMafia2021-2.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2019</span>
-                    <img src="assets/LaMafia2019.jpeg" alt="La Mafia 2019">
+                    <img src="assets/LaMafia2019.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2019</span>
-                    <img src="assets/LaMafia2019-1.jpeg" alt="La Mafia 2019">
+                    <img src="assets/LaMafia2019-1.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2018</span>
-                    <img src="assets/LaMafia2018.jpeg" alt="La Mafia 2018">
+                    <img src="assets/LaMafia2018.jpeg">
                 </div>
+
                 <div class="foto-card">
                     <span class="ano-foto">2018</span>
-                    <img src="assets/LaMafia2018-1.jpeg" alt="La Mafia 2018">
+                    <img src="assets/LaMafia2018-1.jpeg">
                 </div>
+
             </div>
         </section>
 
@@ -166,12 +211,15 @@
         </footer>
     </div>
 
+
+    <!-- LIGHTBOX -->
     <div class="lightbox" id="lightbox">
         <span class="lightbox-close" id="btn-fechar">&times;</span>
         <img class="lightbox-img" id="lightbox-img" src="" alt="Foto Expandida">
     </div>
 
     <script src="script.js"></script>
+
 </body>
 
 </html>

@@ -143,24 +143,17 @@ p {
 
 .img-info {
     width: 100%;
-    /* Faz a imagem ocupar a largura total do quadro */
     max-width: 100%;
-    /* Garante que não ultrapasse o limite */
     height: auto;
-    /* Mantém a proporção da foto */
     border-radius: 12px;
-    /* Deixa as pontas arredondadas para combinar com o quadro */
     margin-bottom: 15px;
-    /* Cria um espaço entre a foto e o texto abaixo */
     display: block;
 }
 
-/* Ajuste opcional na info-lista para centralizar o conteúdo se preferir */
 .info-lista {
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Centraliza a imagem e os textos */
     gap: 8px;
 }
 
@@ -339,7 +332,6 @@ p {
     pointer-events: auto;
 }
 
-/* 🔥 AJUSTE CRÍTICO */
 .lightbox-img {
     max-width: 90%;
     max-height: 90%;
@@ -418,4 +410,65 @@ p {
         margin: 0 auto;
         opacity: 0.7;
     }
+
+}
+
+/* =========================
+   EFEITO FESTA
+========================= */
+
+#overlay-festa {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.18);
+    /* leve escurecimento */
+    backdrop-filter: blur(3px);
+    pointer-events: none;
+    z-index: 999998;
+    display: none;
+}
+
+#fogos {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999999;
+    display: none;
+}
+
+#btn-fechar-festa {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000000;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 30px;
+    background: #ff004c;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    display: none;
+    box-shadow: 0 0 20px rgba(255, 0, 80, 0.6);
+}
+
+/* TEXTO É HOJE */
+#mensagem-evento {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 10vw, 6rem);
+    color: #fff;
+    text-align: center;
+    opacity: 0;
+    z-index: 9999999;
+    text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff;
+    transition: 0.6s ease;
+}
+
+#mensagem-evento.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
 }
