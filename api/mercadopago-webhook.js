@@ -51,7 +51,9 @@ function extrairQuantidade(pagamento) {
 async function enviarWhatsapp(contato, mensagem) {
   const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(contato.telefone)}&text=${encodeURIComponent(mensagem)}&apikey=${encodeURIComponent(contato.apikey)}`;
   try {
-    await fetch(url);
+    const resposta = await fetch(url);
+    const texto = await resposta.text();
+    console.log(`CallMeBot (${contato.telefone}):`, resposta.status, texto);
   } catch (err) {
     console.error("Falha ao enviar WhatsApp:", err);
   }
@@ -100,34 +102,38 @@ module.exports = async (req, res) => {
     return;
   }
 
-  // Responde rápido — o Mercado Pago reenvia a notificação se demorar.
-  res.status(200).send("ok");
-
+  // Processa tudo ANTES de responder — em função serverless, responder
+  // cedo e continuar trabalho assíncrono depois arrisca a execução ser
+  // interrompida antes de terminar. O Mercado Pago espera até 22s.
   try {
     const body = req.body || {};
     const paymentId = await acharPaymentId(body, req.query);
-    if (!paymentId || pagamentosProcessados.has(paymentId)) return;
 
-    const pagamento = await buscarPagamento(paymentId);
-    if (pagamento.status !== "approved") return;
+    if (paymentId && !pagamentosProcessados.has(paymentId)) {
+      const pagamento = await buscarPagamento(paymentId);
 
-    pagamentosProcessados.add(paymentId);
+      if (pagamento.status === "approved") {
+        pagamentosProcessados.add(paymentId);
 
-    const tamanho = extrairTamanho(pagamento);
-    const quantidade = extrairQuantidade(pagamento);
-    const comprador = pagamento.payer?.first_name || pagamento.payer?.email || "não identificado";
+        const tamanho = extrairTamanho(pagamento);
+        const quantidade = extrairQuantidade(pagamento);
+        const comprador = pagamento.payer?.first_name || pagamento.payer?.email || "não identificado";
 
-    const mensagem =
-      `🎉 Novo abadá pago!\n` +
-      `Tamanho: ${tamanho}\n` +
-      `Quantidade: ${quantidade}\n` +
-      `Total: R$ ${pagamento.transaction_amount.toFixed(2).replace(".", ",")}\n` +
-      `Comprador: ${comprador}\n` +
-      `Pedido MP: #${paymentId}`;
+        const mensagem =
+          `🎉 Novo abadá pago!\n` +
+          `Tamanho: ${tamanho}\n` +
+          `Quantidade: ${quantidade}\n` +
+          `Total: R$ ${pagamento.transaction_amount.toFixed(2).replace(".", ",")}\n` +
+          `Comprador: ${comprador}\n` +
+          `Pedido MP: #${paymentId}`;
 
-    const contatos = contatosConfigurados();
-    await Promise.all(contatos.map((c) => enviarWhatsapp(c, mensagem)));
+        const contatos = contatosConfigurados();
+        await Promise.all(contatos.map((c) => enviarWhatsapp(c, mensagem)));
+      }
+    }
   } catch (err) {
     console.error("Erro ao processar webhook do Mercado Pago:", err);
   }
+
+  res.status(200).send("ok");
 };
