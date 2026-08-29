@@ -9,7 +9,6 @@
 //   (repita _2, _3... pra adicionar mais destinatários, ex: Junior/Lapela)
 
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
-const PRECO_UNITARIO = 75;
 
 function contatosConfigurados() {
   const contatos = [];
@@ -23,20 +22,30 @@ function contatosConfigurados() {
 
 const TAMANHOS_VALIDOS = ["P", "M", "G", "GG"];
 
-function extrairTamanho(descricao = "") {
-  // Tenta primeiro o padrão explícito "Tamanho X".
+function extrairTamanho(pagamento) {
+  // Pagamentos criados via api/criar-pagamento.js levam o tamanho em
+  // external_reference — é a forma confiável de identificar.
+  const ref = String(pagamento.external_reference || "").toUpperCase();
+  if (TAMANHOS_VALIDOS.includes(ref)) return ref;
+
+  // Links de pagamento antigos (painel) não têm external_reference —
+  // cai pra tentar ler da descrição, se houver.
+  const descricao = pagamento.description || "";
   const explicito = descricao.match(/TAMANHO[:\s]+(\w{1,2})\b/i);
   if (explicito && TAMANHOS_VALIDOS.includes(explicito[1].toUpperCase())) {
     return explicito[1].toUpperCase();
   }
-
-  // Senão, aceita quando a última palavra da descrição já é o tamanho
-  // (ex: "Abadá Lá Máfia P").
   const palavras = descricao.trim().split(/\s+/);
   const ultima = (palavras[palavras.length - 1] || "").toUpperCase();
   if (TAMANHOS_VALIDOS.includes(ultima)) return ultima;
 
   return "não identificado";
+}
+
+function extrairQuantidade(pagamento) {
+  const item = pagamento.additional_info?.items?.[0];
+  const quantidade = parseInt(item?.quantity, 10);
+  return Number.isFinite(quantidade) && quantidade > 0 ? quantidade : 1;
 }
 
 async function enviarWhatsapp(contato, mensagem) {
@@ -71,8 +80,8 @@ module.exports = async (req, res) => {
 
     if (pagamento.status !== "approved") return;
 
-    const tamanho = extrairTamanho(pagamento.description);
-    const quantidade = Math.max(1, Math.round(pagamento.transaction_amount / PRECO_UNITARIO));
+    const tamanho = extrairTamanho(pagamento);
+    const quantidade = extrairQuantidade(pagamento);
     const comprador = pagamento.payer?.first_name || pagamento.payer?.email || "não identificado";
 
     const mensagem =

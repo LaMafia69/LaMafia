@@ -249,24 +249,17 @@ document.addEventListener("click", () => {
    CHECKOUT ABADÁ (PIX/CARTÃO)
 ========================= */
 
-// Crie um link por tamanho (Dashboard > Cobranças > Link de pagamento) com
-// "Quantidade por comprador" habilitada. O webhook identifica o tamanho
-// pela Descrição do link: aceita tanto "Tamanho P" quanto qualquer
-// descrição que termine com P/M/G/GG (ex: "Abadá Lá Máfia P").
+// O pagamento é criado dinamicamente via api/criar-pagamento.js (Preferences
+// API do Mercado Pago) — não usa mais link fixo, porque links criados pelo
+// painel não disparam webhook. O valor cobrado de verdade está definido lá.
 //
-// ATENÇÃO: P e M estão com valor de TESTE (R$ 0,01) de propósito por
-// enquanto. Trocar os 4 links pro valor definitivo (R$ 75,00) antes de
-// divulgar o site pra não vender abadá por 1 centavo.
+// ATENÇÃO: valor de TESTE (R$ 0,01) de propósito por enquanto — precisa
+// bater com PRECO_UNITARIO em api/criar-pagamento.js. Trocar os dois pro
+// valor definitivo (R$ 75,00) antes de divulgar o site.
 const PAGAMENTO_ATIVO = true;
-const LINKS_PAGAMENTO = {
-  P: "https://mpago.la/1JtdhxG", // TESTE - R$ 0,01
-  M: "https://mpago.la/2YsCpHy", // TESTE - R$ 0,01
-  G: "COLOQUE_AQUI_O_LINK_TAMANHO_G",
-  GG: "COLOQUE_AQUI_O_LINK_TAMANHO_GG",
-};
 const WHATSAPP_FALLBACK = "559884456488"; // Junior
 
-const PRECO_UNITARIO = 75;
+const PRECO_UNITARIO = 0.01;
 let tamanhoSelecionado = "P";
 let quantidade = 1;
 
@@ -313,21 +306,39 @@ if (qtdMenosBtn && qtdMaisBtn && qtdValorEl) {
   });
 }
 
-function irParaPagamento() {
+function cairNoFallbackWhatsapp() {
   const total = PRECO_UNITARIO * quantidade;
-  const link = LINKS_PAGAMENTO[tamanhoSelecionado];
-
-  if (PAGAMENTO_ATIVO && link && !link.startsWith("COLOQUE_AQUI")) {
-    window.open(link, "_blank", "noopener,noreferrer");
-    return;
-  }
-
-  // Enquanto o pagamento online não está configurado, cai no WhatsApp
-  // com os dados já preenchidos, para não perder o pedido.
   const mensagem = encodeURIComponent(
     `Quero comprar ${quantidade} abadá(s) tamanho ${tamanhoSelecionado} da La Mafia 2027 - Total R$ ${total.toFixed(2).replace(".", ",")}`
   );
-  window.open(`https://wa.me/${WHATSAPP_FALLBACK}?text=${mensagem}`, "_blank", "noopener,noreferrer");
+  // Navega na mesma aba (em vez de abrir nova) pra não esbarrar no
+  // bloqueador de pop-up, já que essa chamada pode vir depois de um await.
+  window.location.href = `https://wa.me/${WHATSAPP_FALLBACK}?text=${mensagem}`;
+}
+
+async function irParaPagamento() {
+  if (!PAGAMENTO_ATIVO) {
+    cairNoFallbackWhatsapp();
+    return;
+  }
+
+  try {
+    const resposta = await fetch("/api/criar-pagamento", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tamanho: tamanhoSelecionado, quantidade }),
+    });
+    const dados = await resposta.json();
+
+    if (!resposta.ok || !dados.init_point) {
+      throw new Error(dados.erro || "Falha ao criar pagamento");
+    }
+
+    window.location.href = dados.init_point;
+  } catch (err) {
+    console.error("Erro ao iniciar pagamento:", err);
+    cairNoFallbackWhatsapp();
+  }
 }
 
 if (btnPix) {
