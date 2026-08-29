@@ -78,6 +78,8 @@ async function acharPaymentId(body, query) {
   const topico = body?.topic || query.topic;
   const dataId = body?.data?.id || query["data.id"] || query.id;
 
+  console.log("acharPaymentId — query bruta:", JSON.stringify(query), "tipo:", tipo, "topico:", topico, "dataId:", dataId);
+
   if ((tipo === "payment" || topico === "payment") && dataId) return dataId;
 
   if (topico === "merchant_order" && dataId) {
@@ -85,6 +87,7 @@ async function acharPaymentId(body, query) {
       headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` },
     });
     const pedido = await resposta.json();
+    console.log("merchant_order — status HTTP:", resposta.status, "payments:", JSON.stringify(pedido.payments), "erro:", pedido.error || pedido.message || null);
     const aprovado = (pedido.payments || []).find((p) => p.status === "approved");
     return aprovado?.id || null;
   }
