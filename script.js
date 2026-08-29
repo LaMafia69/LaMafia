@@ -2,7 +2,7 @@
    CONTADOR
 ========================= */
 
-const evento = new Date("2026-02-16T16:00:00-03:00").getTime();
+const evento = new Date("2027-02-16T16:00:00-03:00").getTime();
 
 let fogosIniciados = false;
 let intervalosAnimacao = [];
@@ -243,3 +243,103 @@ document.addEventListener("click", () => {
     }
   }
 });
+
+
+/* =========================
+   CHECKOUT ABADÁ (PIX/CARTÃO)
+========================= */
+
+// Crie um link por tamanho (Dashboard > Cobranças > Link de pagamento) com
+// "Quantidade por comprador" habilitada. O webhook identifica o tamanho
+// pela Descrição do link: aceita tanto "Tamanho P" quanto qualquer
+// descrição que termine com P/M/G/GG (ex: "Abadá Lá Máfia P").
+//
+// ATENÇÃO: P e M estão com valor de TESTE (R$ 0,01) de propósito por
+// enquanto. Trocar os 4 links pro valor definitivo (R$ 75,00) antes de
+// divulgar o site pra não vender abadá por 1 centavo.
+const PAGAMENTO_ATIVO = true;
+const LINKS_PAGAMENTO = {
+  P: "https://mpago.la/1JtdhxG", // TESTE - R$ 0,01
+  M: "https://mpago.la/2YsCpHy", // TESTE - R$ 0,01
+  G: "COLOQUE_AQUI_O_LINK_TAMANHO_G",
+  GG: "COLOQUE_AQUI_O_LINK_TAMANHO_GG",
+};
+const WHATSAPP_FALLBACK = "559884456488"; // Junior
+
+const PRECO_UNITARIO = 75;
+let tamanhoSelecionado = "P";
+let quantidade = 1;
+
+const tamanhoSelector = document.getElementById("tamanho-selector");
+const qtdValorEl = document.getElementById("qtd-valor");
+const qtdMenosBtn = document.getElementById("qtd-menos");
+const qtdMaisBtn = document.getElementById("qtd-mais");
+const precoTotalEl = document.getElementById("preco-total");
+const btnPix = document.getElementById("btn-pix");
+const btnCartao = document.getElementById("btn-cartao");
+
+function atualizarTotal() {
+  const total = PRECO_UNITARIO * quantidade;
+  if (precoTotalEl) {
+    precoTotalEl.innerText = `R$ ${total.toFixed(2).replace(".", ",")}`;
+  }
+}
+
+if (tamanhoSelector) {
+  tamanhoSelector.querySelectorAll(".tamanho-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      tamanhoSelector.querySelectorAll(".tamanho-btn").forEach(b => b.classList.remove("selecionado"));
+      btn.classList.add("selecionado");
+      tamanhoSelecionado = btn.dataset.tamanho;
+    });
+  });
+}
+
+if (qtdMenosBtn && qtdMaisBtn && qtdValorEl) {
+  qtdMenosBtn.addEventListener("click", () => {
+    if (quantidade > 1) {
+      quantidade--;
+      qtdValorEl.innerText = quantidade;
+      atualizarTotal();
+    }
+  });
+
+  qtdMaisBtn.addEventListener("click", () => {
+    if (quantidade < 10) {
+      quantidade++;
+      qtdValorEl.innerText = quantidade;
+      atualizarTotal();
+    }
+  });
+}
+
+function irParaPagamento() {
+  const total = PRECO_UNITARIO * quantidade;
+  const link = LINKS_PAGAMENTO[tamanhoSelecionado];
+
+  if (PAGAMENTO_ATIVO && link && !link.startsWith("COLOQUE_AQUI")) {
+    window.open(link, "_blank", "noopener,noreferrer");
+    return;
+  }
+
+  // Enquanto o pagamento online não está configurado, cai no WhatsApp
+  // com os dados já preenchidos, para não perder o pedido.
+  const mensagem = encodeURIComponent(
+    `Quero comprar ${quantidade} abadá(s) tamanho ${tamanhoSelecionado} da La Mafia 2027 - Total R$ ${total.toFixed(2).replace(".", ",")}`
+  );
+  window.open(`https://wa.me/${WHATSAPP_FALLBACK}?text=${mensagem}`, "_blank", "noopener,noreferrer");
+}
+
+if (btnPix) {
+  btnPix.addEventListener("click", (e) => {
+    e.preventDefault();
+    irParaPagamento();
+  });
+}
+
+if (btnCartao) {
+  btnCartao.addEventListener("click", (e) => {
+    e.preventDefault();
+    irParaPagamento();
+  });
+}
