@@ -57,6 +57,43 @@ async function enviarWhatsapp(contato, mensagem) {
   }
 }
 
+async function buscarPagamento(paymentId) {
+  const resposta = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+    headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` },
+  });
+  return resposta.json();
+}
+
+// Acha o id do pagamento a partir de uma notificação. O Mercado Pago manda
+// pelo menos três formatos diferentes pro mesmo evento:
+//   1. { type: "payment", data: { id } }              (Webhooks v2)
+//   2. ?topic=payment&id=X                            (IPN clássico)
+//   3. ?topic=merchant_order&id=X                      (IPN clássico, pedido)
+// O formato 3 não traz o payment id direto — tem que buscar o pedido pra
+// achar o pagamento aprovado dentro dele.
+async function acharPaymentId(body, query) {
+  const tipo = body?.type || query.type;
+  const topico = body?.topic || query.topic;
+  const dataId = body?.data?.id || query["data.id"] || query.id;
+
+  if ((tipo === "payment" || topico === "payment") && dataId) return dataId;
+
+  if (topico === "merchant_order" && dataId) {
+    const resposta = await fetch(`https://api.mercadopago.com/merchant_orders/${dataId}`, {
+      headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` },
+    });
+    const pedido = await resposta.json();
+    const aprovado = (pedido.payments || []).find((p) => p.status === "approved");
+    return aprovado?.id || null;
+  }
+
+  return null;
+}
+
+// Evita reenviar a mesma mensagem em retentativas dentro da mesma instância
+// (não é garantido entre instâncias diferentes, mas reduz bastante).
+const pagamentosProcessados = new Set();
+
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
     res.status(200).send("ok");
@@ -68,17 +105,13 @@ module.exports = async (req, res) => {
 
   try {
     const body = req.body || {};
-    const paymentId = body?.data?.id || req.query["data.id"];
-    const tipo = body?.type || req.query.type;
+    const paymentId = await acharPaymentId(body, req.query);
+    if (!paymentId || pagamentosProcessados.has(paymentId)) return;
 
-    if (tipo !== "payment" || !paymentId) return;
-
-    const resposta = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-      headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` },
-    });
-    const pagamento = await resposta.json();
-
+    const pagamento = await buscarPagamento(paymentId);
     if (pagamento.status !== "approved") return;
+
+    pagamentosProcessados.add(paymentId);
 
     const tamanho = extrairTamanho(pagamento);
     const quantidade = extrairQuantidade(pagamento);
