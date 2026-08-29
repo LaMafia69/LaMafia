@@ -3,9 +3,10 @@
 ========================= */
 
 const evento = new Date("2026-02-16T16:00:00-03:00").getTime();
-//const evento = new Date(Date.now() + 5000).getTime(); // teste 5 segundos
 
 let fogosIniciados = false;
+let intervalosAnimacao = [];
+let rafId = null;
 
 const intervalo = setInterval(() => {
 
@@ -52,8 +53,7 @@ const lightboxImg = document.getElementById('lightbox-img');
 const closeBtn = document.getElementById('btn-fechar');
 
 fotos.forEach(img => {
-  img.addEventListener('click', (e) => {
-    e.preventDefault();
+  img.addEventListener('click', () => {
     lightboxImg.src = img.src;
     lightbox.classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -82,12 +82,91 @@ function iniciarCelebracao() {
   document.getElementById("fogos").style.display = "block";
   document.getElementById("btn-fechar-festa").style.display = "block";
 
-  iniciarFogos();
-  iniciarConfete();
+  const canvas = document.getElementById("fogos");
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const resizeHandler = () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  };
+  window.addEventListener("resize", resizeHandler);
+
+  let particulas = [];
+  let confetes = [];
+
+  function criarExplosao() {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height * 0.6;
+    for (let i = 0; i < 80; i++) {
+      particulas.push({
+        x, y,
+        vx: (Math.random() - 0.5) * 8,
+        vy: (Math.random() - 0.5) * 8,
+        life: 100,
+        cor: `hsl(${Math.random() * 360},100%,60%)`
+      });
+    }
+  }
+
+  function criarConfete() {
+    for (let i = 0; i < 10; i++) {
+      confetes.push({
+        x: Math.random() * canvas.width,
+        y: -10,
+        size: Math.random() * 6 + 4,
+        speed: Math.random() * 3 + 2,
+        cor: `hsl(${Math.random() * 360},100%,60%)`
+      });
+    }
+  }
+
+  function animar() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = particulas.length - 1; i >= 0; i--) {
+      const p = particulas[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life--;
+      if (p.life <= 0) {
+        particulas.splice(i, 1);
+        continue;
+      }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = p.cor;
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = p.cor;
+      ctx.fill();
+    }
+
+    ctx.shadowBlur = 0;
+
+    for (let i = confetes.length - 1; i >= 0; i--) {
+      const c = confetes[i];
+      c.y += c.speed;
+      if (c.y > canvas.height) {
+        confetes.splice(i, 1);
+        continue;
+      }
+      ctx.fillStyle = c.cor;
+      ctx.fillRect(c.x, c.y, c.size, c.size);
+    }
+
+    rafId = requestAnimationFrame(animar);
+  }
+
+  const explosoesId = setInterval(criarExplosao, 700);
+  const confeteId = setInterval(criarConfete, 200);
+  intervalosAnimacao = [explosoesId, confeteId];
+
+  animar();
   mostrarMensagem();
   tocarSom();
   vibrarCelular();
-
 }
 
 
@@ -104,125 +183,13 @@ document.getElementById("btn-fechar-festa").addEventListener("click", () => {
   const msg = document.getElementById("mensagem-evento");
   msg.classList.remove("show");
 
+  intervalosAnimacao.forEach(id => clearInterval(id));
+  intervalosAnimacao = [];
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
 });
-
-
-/* =========================
-   FOGOS
-========================= */
-
-function iniciarFogos() {
-
-  const canvas = document.getElementById("fogos");
-  const ctx = canvas.getContext("2d");
-
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  window.addEventListener("resize", () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  });
-
-  const particulas = [];
-
-  function criarExplosao() {
-
-    const x = Math.random() * canvas.width;
-    const y = Math.random() * canvas.height * 0.6;
-
-    for (let i = 0; i < 80; i++) {
-
-      particulas.push({
-        x,
-        y,
-        vx: (Math.random() - 0.5) * 8,
-        vy: (Math.random() - 0.5) * 8,
-        life: 100,
-        cor: `hsl(${Math.random() * 360},100%,60%)`
-      });
-
-    }
-  }
-
-  function animar() {
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    particulas.forEach((p, i) => {
-
-      p.x += p.vx;
-      p.y += p.vy;
-      p.life--;
-
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-      ctx.fillStyle = p.cor;
-      ctx.shadowBlur = 15;
-      ctx.shadowColor = p.cor;
-      ctx.fill();
-
-      if (p.life <= 0) particulas.splice(i, 1);
-
-    });
-
-    requestAnimationFrame(animar);
-
-  }
-
-  setInterval(criarExplosao, 700);
-  animar();
-
-}
-
-
-/* =========================
-   CONFETE
-========================= */
-
-function iniciarConfete() {
-
-  const canvas = document.getElementById("fogos");
-  const ctx = canvas.getContext("2d");
-
-  const confetes = [];
-
-  function criarConfete() {
-
-    for (let i = 0; i < 10; i++) {
-
-      confetes.push({
-        x: Math.random() * canvas.width,
-        y: -10,
-        size: Math.random() * 6 + 4,
-        speed: Math.random() * 3 + 2,
-        cor: `hsl(${Math.random() * 360},100%,60%)`
-      });
-
-    }
-  }
-
-  function animarConfete() {
-
-    confetes.forEach((c, i) => {
-
-      c.y += c.speed;
-
-      ctx.fillStyle = c.cor;
-      ctx.fillRect(c.x, c.y, c.size, c.size);
-
-      if (c.y > canvas.height) confetes.splice(i, 1);
-
-    });
-
-    requestAnimationFrame(animarConfete);
-
-  }
-
-  setInterval(criarConfete, 200);
-  animarConfete();
-
-}
 
 
 /* =========================
@@ -230,13 +197,10 @@ function iniciarConfete() {
 ========================= */
 
 function mostrarMensagem() {
-
   const msg = document.getElementById("mensagem-evento");
-
   setTimeout(() => {
     msg.classList.add("show");
   }, 500);
-
 }
 
 
@@ -245,14 +209,11 @@ function mostrarMensagem() {
 ========================= */
 
 function tocarSom() {
-
   const audio = document.getElementById("som-fogos");
-
   if (audio) {
     audio.volume = 0.6;
     audio.play().catch(() => { });
   }
-
 }
 
 
@@ -261,21 +222,16 @@ function tocarSom() {
 ========================= */
 
 function vibrarCelular() {
-
   if (navigator.vibrate) {
     navigator.vibrate([500, 200, 500, 200, 800]);
   }
-
 }
 
 let audioLiberado = false;
 
 document.addEventListener("click", () => {
-
   if (!audioLiberado) {
-
     const audio = document.getElementById("som-fogos");
-
     if (audio) {
       audio.volume = 0;
       audio.play().then(() => {
@@ -285,8 +241,5 @@ document.addEventListener("click", () => {
         audioLiberado = true;
       }).catch(() => { });
     }
-
   }
-
 });
-
