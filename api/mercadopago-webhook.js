@@ -109,8 +109,11 @@ module.exports = async (req, res) => {
     const body = req.body || {};
     const paymentId = await acharPaymentId(body, req.query);
 
+    console.log("Notificação recebida — paymentId encontrado:", paymentId, "já processado?", pagamentosProcessados.has(paymentId));
+
     if (paymentId && !pagamentosProcessados.has(paymentId)) {
       const pagamento = await buscarPagamento(paymentId);
+      console.log("Status do pagamento:", pagamento.status, "| erro da API:", pagamento.error || pagamento.message || null);
 
       if (pagamento.status === "approved") {
         pagamentosProcessados.add(paymentId);
